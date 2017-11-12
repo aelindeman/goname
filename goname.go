@@ -113,15 +113,14 @@ type Domain struct {
 
 // ListDNSRecordsResponse response from /api/dns/list/:name
 type ListDNSRecordsResponse struct {
-	Result  Result      `json:"result"`
-	Records []DNSRecord `json:"records"`
+	Result  Result              `json:"result"`
+	Records []DNSRecordResponse `json:"records"`
 }
 
-// DNSRecord DNS record information
-type DNSRecord struct {
+// DNSRecordResponse DNS record information
+type DNSRecordResponse struct {
 	RecordID   string `json:"record_id"`
 	Name       string `json:"name"`
-	HostName   string `json:"hostname"`
 	Type       string `json:"type"`
 	Content    string `json:"content"`
 	TTL        string `json:"ttl"`
@@ -129,10 +128,27 @@ type DNSRecord struct {
 	Priority   string `json:"priority,omitempty"`
 }
 
+// DNSRecordRequest DNS record *request* information because the API is stupid
+type DNSRecordRequest struct {
+	RecordID   int    `json:"record_id"`
+	Hostname   string `json:"hostname"`
+	Type       string `json:"type"`
+	Content    string `json:"content"`
+	TTL        int    `json:"ttl"`
+	CreateDate string `json:"create_date"`
+	Priority   int    `json:"priority,omitempty"`
+}
+
 // CreateDNSRecordResponse response from /api/dns/create/:name
 type CreateDNSRecordResponse struct {
-	Result Result `json:"result"`
-	DNSRecord
+	Result     Result `json:"result"`
+	RecordID   int    `json:"record_id"`
+	Name       string `json:"name"`
+	Type       string `json:"type"`
+	Content    string `json:"content"`
+	TTL        int    `json:"ttl"`
+	CreateDate string `json:"create_date"`
+	Priority   int    `json:"priority,omitempty"`
 }
 
 // Hello pings the name.com API
@@ -140,9 +156,8 @@ func (n *GoName) Hello() (data HelloResponse, err error) {
 	err = n.get("/api/hello", &data)
 
 	if data.Result.Failed() {
-		return data, fmt.Errorf("api error: %v", data.Result)
+		return data, fmt.Errorf("api error: %s", data.Result.String())
 	}
-
 	return data, err
 }
 
@@ -157,7 +172,7 @@ func (n *GoName) Login() error {
 	}
 
 	if data.Result.Failed() {
-		return fmt.Errorf("api error: %v", data.Result)
+		return fmt.Errorf("api error: %s", data.Result.String())
 	}
 
 	n.SessionToken = data.SessionToken
@@ -168,29 +183,45 @@ func (n *GoName) Login() error {
 func (n *GoName) Logout() error {
 	var data BasicResponse
 	err := n.get("/api/logout", &data)
+
+	if data.Result.Failed() {
+		return fmt.Errorf("api error: %s", data.Result.String())
+	}
 	return err
 }
 
 // Account retunrs the associated Name.com account information
 func (n *GoName) Account() (data AccountResponse, err error) {
 	err = n.get("/api/account/get", &data)
+
+	if data.Result.Failed() {
+		return data, fmt.Errorf("api error: %s", data.Result.String())
+	}
 	return data, err
 }
 
 // ListDomains retrieves information about domains owned by an account
 func (n *GoName) ListDomains() (data ListDomainsResponse, err error) {
 	err = n.get("/api/domain/list", &data)
+
+	if data.Result.Failed() {
+		return data, fmt.Errorf("api error: %s", data.Result.String())
+	}
 	return data, err
 }
 
 // ListDNSRecords retrives records created on supplied domain name
 func (n *GoName) ListDNSRecords(domainName string) (data ListDNSRecordsResponse, err error) {
 	err = n.get(fmt.Sprintf("/api/dns/list/%s", domainName), &data)
+
+	if data.Result.Failed() {
+		return data, fmt.Errorf("api error: %s", data.Result.String())
+	}
 	return data, err
 }
 
 // CreateDNSRecord creates a record on a domain
-func (n *GoName) CreateDNSRecord(domain string, record DNSRecord) (data CreateDNSRecordResponse, err error) {
+func (n *GoName) CreateDNSRecord(domain string, record DNSRecordRequest) (data CreateDNSRecordResponse, err error) {
 	req, err := json.Marshal(record)
 	if err != nil {
 		return data, err
@@ -202,18 +233,20 @@ func (n *GoName) CreateDNSRecord(domain string, record DNSRecord) (data CreateDN
 	}
 
 	if data.Result.Failed() {
-		return data, fmt.Errorf("api error: %v", data.Result)
+		return data, fmt.Errorf("api error: %s", data.Result.String())
 	}
-
 	return data, err
 }
 
 // DeleteDNSRecord deletes a record on a domain
-func (n *GoName) DeleteDNSRecord(domain, recordID string) error {
-	var data BasicResponse
+func (n *GoName) DeleteDNSRecord(domain, recordID string) (data BasicResponse, err error) {
 	req := []byte(fmt.Sprintf(`{"record_id":"%s"}`, recordID))
-	err := n.post(fmt.Sprintf("/api/dns/delete/%s", domain), req, &data)
-	return err
+	err = n.post(fmt.Sprintf("/api/dns/delete/%s", domain), req, &data)
+
+	if data.Result.Failed() {
+		return data, fmt.Errorf("api error: %s", data.Result.String())
+	}
+	return data, err
 }
 
 func (n *GoName) get(url string, into interface{}) error {

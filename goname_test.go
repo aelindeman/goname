@@ -3,10 +3,8 @@ package goname
 import (
 	"fmt"
 	"net/http"
-	// "reflect"
 	"regexp"
 	"testing"
-	// "time"
 
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
@@ -232,21 +230,20 @@ func TestResultString(t *testing.T) {
 
 func registerMockResponders(base string, transport *httpmock.MockTransport) {
 	responses := []struct {
-		Method                string
-		Endpoint              string
-		RequiresAuthorization bool
-		Code                  int
-		Response              string
+		Method   string
+		Endpoint string
+		Code     int
+		Response string
 	}{
-		{http.MethodGet, "/api/hello", false, 200, `{"result":{"code":100,"message":"Operation Successful"},"service":"goname-test","server_date":"today","version":"0","language":"foo","client_ip":"127.0.0.1"}`},
-		{http.MethodPost, "/api/login", false, 200, `{"result":{"code":100,"message":"Operation Successful"},"session_token":"abcdef"}`},
-		{http.MethodGet, "/api/logout", false, 200, `{"result":{"code":100,"message":"Operation Successful"}}`},
-		{http.MethodGet, "/api/account/get", true, 200, `{"result":{"code":100,"message":"Operation Successful"},"username":"test-user","create_date":"2018-01-01 12:00:00","domain_count":"0","account_credit":"0.00","contacts":[{"type":["mock"],"first_name":"Test","last_name":"User"}]}`},
-		{http.MethodGet, "/api/domain/list", true, 200, `{"result":{"code":100,"message":"Operation Successful"},"domains":{"foo.mock":{"tld":"mock","create_date":"2018-01-01 12:00:00","expire_date":"2019-01-01 12:00:00"},"bar.mock":{"tld":"mock","create_date":"2018-01-01 12:00:00","expire_date":"2019-01-01 12:00:00","whois_privacy":{"enabled":true,"expire_date":"2018-06-01 12:00:00"},"addons":{"whois_privacy/renew":{"price":"1.99"},"domain/renew":{"price":"4.99"}}}}}`},
-		{http.MethodGet, "/api/dns/list/foo.mock", true, 200, `{"result":{"code":100,"message":"Operation Successful"},"records":[{"record_id":"1","name":"foo.mock","type":"A","content":"127.0.0.1","ttl":"3600","create_date":"2018-01-01 12:00:00"},{"record_id":"2","name":"foo.mock","type":"AAAA","content":"::1","ttl":"3600","create_date":"2018-01-01 12:00:00"},{"record_id":"3","name":"mail.foo.mock","type":"MX","content":"127.0.0.1","ttl":"3600","create_date":"2018-01-01 12:00:00","priority":"10"},{"record_id":"4","name":"www.foo.mock","type":"CNAME","content":"foo","ttl":"3600","create_date":"2018-01-01 12:00:00"}]}`},
-		{http.MethodGet, "/api/dns/list/bar.mock", true, 200, `{"result":{"code":100,"message":"Operation Successful"},"records":[]}`},
-		{http.MethodPost, "/api/dns/create/foo.mock", true, 200, `{"result":{"code":100,"message":"Operation Successful"},"record_id":5,"name":"foo.mock","type":"TXT","content":"lorem ipsum","ttl":3600,"create_date":"2018-01-01 12:00:00"}`},
-		{http.MethodPost, "/api/dns/delete/foo.mock", true, 200, `{"result":{"code":100,"message":"Operation Successful"}}`},
+		{http.MethodGet, "/api/hello", 200, `{"result":{"code":100,"message":"Operation Successful"},"service":"goname-test","server_date":"today","version":"0","language":"foo","client_ip":"127.0.0.1"}`},
+		{http.MethodPost, "/api/login", 200, `{"result":{"code":100,"message":"Operation Successful"},"session_token":"abcdef"}`},
+		{http.MethodGet, "/api/logout", 200, `{"result":{"code":100,"message":"Operation Successful"}}`},
+		{http.MethodGet, "/api/account/get", 200, `{"result":{"code":100,"message":"Operation Successful"},"username":"test-user","create_date":"2018-01-01 12:00:00","domain_count":"0","account_credit":"0.00","contacts":[{"type":["mock"],"first_name":"Test","last_name":"User"}]}`},
+		{http.MethodGet, "/api/domain/list", 200, `{"result":{"code":100,"message":"Operation Successful"},"domains":{"foo.mock":{"tld":"mock","create_date":"2018-01-01 12:00:00","expire_date":"2019-01-01 12:00:00"},"bar.mock":{"tld":"mock","create_date":"2018-01-01 12:00:00","expire_date":"2019-01-01 12:00:00","whois_privacy":{"enabled":true,"expire_date":"2018-06-01 12:00:00"},"addons":{"whois_privacy/renew":{"price":"1.99"},"domain/renew":{"price":"4.99"}}}}}`},
+		{http.MethodGet, "/api/dns/list/foo.mock", 200, `{"result":{"code":100,"message":"Operation Successful"},"records":[{"record_id":"1","name":"foo.mock","type":"A","content":"127.0.0.1","ttl":"3600","create_date":"2018-01-01 12:00:00"},{"record_id":"2","name":"foo.mock","type":"AAAA","content":"::1","ttl":"3600","create_date":"2018-01-01 12:00:00"},{"record_id":"3","name":"mail.foo.mock","type":"MX","content":"127.0.0.1","ttl":"3600","create_date":"2018-01-01 12:00:00","priority":"10"},{"record_id":"4","name":"www.foo.mock","type":"CNAME","content":"foo","ttl":"3600","create_date":"2018-01-01 12:00:00"}]}`},
+		{http.MethodGet, "/api/dns/list/bar.mock", 200, `{"result":{"code":100,"message":"Operation Successful"},"records":[]}`},
+		{http.MethodPost, "/api/dns/create/foo.mock", 200, `{"result":{"code":100,"message":"Operation Successful"},"record_id":5,"name":"foo.mock","type":"TXT","content":"lorem ipsum","ttl":3600,"create_date":"2018-01-01 12:00:00"}`},
+		{http.MethodPost, "/api/dns/delete/foo.mock", 200, `{"result":{"code":100,"message":"Operation Successful"}}`},
 	}
 
 	extraslash := regexp.MustCompile("([^:])//+")

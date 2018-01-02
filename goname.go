@@ -187,6 +187,8 @@ func (n *GoName) Logout() error {
 	if data.Result.Failed() {
 		return fmt.Errorf("api error: %s", data.Result.String())
 	}
+
+	n.SessionToken = ""
 	return err
 }
 

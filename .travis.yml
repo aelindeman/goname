@@ -1,0 +1,25 @@
+language: go
+
+go:
+  - 1.8
+  - 1.9
+  - tip
+
+cache:
+  directories:
+    - $GOPATH/pkg
+    - $GOPATH/src
+
+before_install:
+  - go get github.com/golang/dep/cmd/dep
+  - go get github.com/alecthomas/gometalinter
+  - gometalinter --install
+
+install:
+  - dep ensure
+
+before_script:
+  - gometalinter
+
+script:
+  - go test -v -cover

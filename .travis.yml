@@ -20,7 +20,7 @@ install:
   - dep ensure
 
 before_script:
-  - gometalinter --aggregate --errors
+  - gometalinter
 
 script:
   - go test -v -cover

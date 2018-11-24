@@ -1,9 +1,7 @@
 language: go
 
 go:
-  - 1.8
-  - 1.9
-  - tip
+  - 1.x
 
 cache:
   directories:
@@ -14,12 +12,17 @@ before_install:
   - go get github.com/golang/dep/cmd/dep
   - go get github.com/alecthomas/gometalinter
   - gometalinter --install
+  - >-
+    curl -Lo cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 &&
+    chmod +x cc-test-reporter &&
+    ./cc-test-reporter before-build
 
 install:
   - dep ensure
 
 before_script:
   - gometalinter
+  - go test -v -coverprofile c.out
 
-script:
-  - go test -v -cover
+after_script:
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT

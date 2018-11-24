@@ -1,6 +1,5 @@
 {
   "Enable": [
-    "gas",
     "golint",
     "ineffassign",
     "vet",

@@ -1,0 +1,41 @@
+name: goname
+
+on:
+  - push
+  
+jobs:
+  lint-test-build:
+    name: Lint, test, and build on push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+          with:
+            version: 1.10
+          id: go
+
+      - name: Checkout
+        uses: actions/checkout@master
+        path: ${{ go.module-path }}
+        
+      - name: Install tools
+        working-directory: ${{ go.module-path }}
+        run: |
+          curl -sfL https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+          curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.17.1
+
+      - name: Install dependencies
+        working-directory: ${{ go.module-path }}
+        run: dep ensure
+
+      - name: Lint
+        working-directory: ${{ go.module-path }}
+        run: golangci-lint run
+
+      - name: Test
+        working-directory: ${{ go.module-path }}
+        run: go test -v -coverprofile c.out
+
+      - name: Build
+        working-directory: ${{ go.module-path }}
+        run: go build -v .
